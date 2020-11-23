@@ -24,7 +24,7 @@ use self::rustc::{TargetList, VersionMetaExt};
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum Host {
-    Other,
+    Other(String),
 
     // OSX
     X86_64AppleDarwin,
@@ -66,7 +66,7 @@ impl Host {
                     Host::X86_64PcWindowsMsvc => {
                         target.map(|t| t.triple() != Host::X86_64PcWindowsMsvc.triple() && t.needs_docker()).unwrap_or(false)
                     }
-                    Host::Other => false,
+                    Host::Other(_) => false,
                 }
             },
             // New behaviour, if a target is provided (--target ...) then always run with docker
@@ -83,8 +83,8 @@ impl Host {
         }
     }
 
-    fn triple(&self) -> &'static str {
-        match *self {
+    fn triple(&self) -> &str {
+        match self {
             Host::X86_64AppleDarwin => "x86_64-apple-darwin",
             Host::Aarch64AppleDarwin => "aarch64-apple-darwin",
             Host::X86_64UnknownLinuxGnu => "x86_64-unknown-linux-gnu",
@@ -92,7 +92,7 @@ impl Host {
             Host::X86_64UnknownLinuxMusl => "x86_64-unknown-linux-musl",
             Host::Aarch64UnknownLinuxMusl => "aarch64-unknown-linux-musl",
             Host::X86_64PcWindowsMsvc => "x86_64-pc-windows-msvc",
-            Host::Other => unimplemented!()
+            Host::Other(s) => s.as_str(),
         }
     }
 }
@@ -107,7 +107,7 @@ impl<'a> From<&'a str> for Host {
             "aarch64-apple-darwin" => Host::Aarch64AppleDarwin,
             "aarch64-unknown-linux-gnu" => Host::Aarch64UnknownLinuxGnu,
             "aarch64-unknown-linux-musl" => Host::Aarch64UnknownLinuxMusl,
-            _ => Host::Other,
+            s => Host::Other(s.to_string()),
         }
     }
 }
@@ -208,7 +208,7 @@ impl From<Host> for Target {
             Host::Aarch64AppleDarwin => Target::new_built_in("aarch64-apple-darwin"),
             Host::Aarch64UnknownLinuxGnu => Target::new_built_in("aarch64-unknown-linux-gnu"),
             Host::Aarch64UnknownLinuxMusl => Target::new_built_in("aarch64-unknown-linux-musl"),
-            Host::Other => unimplemented!(),
+            Host::Other(s) => Target::from(s.as_str(), &rustc::target_list(false).unwrap()),
         }
     }
 }
