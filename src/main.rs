@@ -52,7 +52,7 @@ impl Host {
     ///
     /// `target == None` means `target == host`
     fn is_supported(&self, target: Option<&Target>) -> bool {
-        match std::env::var("`CROSS_COMPATIBILITY_VERSION`").as_deref(){
+        match std::env::var("CROSS_COMPATIBILITY_VERSION").as_ref().map(|v| v.as_str()) {
             // Old behavior (up to cross version 0.2.1) can be activated on demand using environment
             // variable `CROSS_COMPATIBILITY_VERSION`.
             Ok("0.2.1") => {
